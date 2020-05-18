@@ -29,6 +29,26 @@ export default class helpers {
     );
   }
 
+  formatRFC5545Text(raw) {
+    // https://tools.ietf.org/html/rfc5545#section-3.1
+    //   Lines of text SHOULD NOT be longer than 75 octets, excluding the line
+    //   break.  Long content lines SHOULD be split into a multiple line
+    //   representations using a line "folding" technique.
+    // https://tools.ietf.org/html/rfc5545#section-3.3.11
+    //   An intentional formatted text line break MUST only be included in
+    //   a "TEXT" property value by representing the line break with the
+    //   character sequence of BACKSLASH, followed by a LATIN SMALL LETTER
+    //   N or a LATIN CAPITAL LETTER N, that is "\n" or "\N".
+    const text = raw || "";
+    const escaped = text.replace(/[\r\n]/g, '\\n');
+    const splits = [];
+    for (let split = escaped; (split.length !== 0); split = split.substr(75)) {
+      splits.push(split.substr(0, 75));
+    }
+    const formatted = splits.join("\n ");
+    return formatted;
+  }
+
   buildUrl(event, type, isCrappyIE) {
     let calendarUrl = "";
 
@@ -77,9 +97,9 @@ export default class helpers {
           "URL:" + document.URL,
           "DTSTART:" + this.formatTime(event.startTime),
           "DTEND:" + this.formatTime(event.endTime),
-          "SUMMARY:" + event.title,
-          "DESCRIPTION:" + event.description,
-          "LOCATION:" + event.location,
+          "SUMMARY:" + this.formatRFC5545Text(event.title),
+          "DESCRIPTION:" + this.formatRFC5545Text(event.description),
+          "LOCATION:" + this.formatRFC5545Text(event.location),
           "END:VEVENT",
           "END:VCALENDAR"
         ].join("\n");
@@ -98,7 +118,7 @@ export default class helpers {
   isMobile() {
     let mobile = false;
 
-    (function(a) {
+    (function (a) {
       if (
         /(android|bb\d+|meego).+mobile|avantgo|bada\/|blackberry|blazer|compal|elaine|fennec|hiptop|iemobile|ip(hone|od)|iris|kindle|lge |maemo|midp|mmp|mobile.+firefox|netfront|opera m(ob|in)i|palm( os)?|phone|p(ixi|re)\/|plucker|pocket|psp|series(4|6)0|symbian|treo|up\.(browser|link)|vodafone|wap|windows ce|xda|xiino/i.test(
           a
